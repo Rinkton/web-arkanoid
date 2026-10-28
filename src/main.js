@@ -1,6 +1,6 @@
 import { Application, Assets, Sprite, TextureSource, Container } from "pixi.js";
 
-const gameScale = 4
+const gameScale = 2.5
 
 /**
  * 
@@ -10,11 +10,11 @@ const gameScale = 4
  * @param {*} container some container(e.g. app.stage or game)
  * @returns sprite
  */
-async function createAndPlaceSprite(assetPath, x, y, container) {
+async function createAndPlaceSprite(assetPath, x, y, container, anchor=0.5) {
   const texture = await Assets.load(assetPath);
   const sprite = new Sprite(texture);
-  sprite.anchor.set(0.5); // center it
-  sprite.position.set(x / gameScale, y / gameScale);
+  sprite.anchor.set(anchor); // center it
+  sprite.position.set(x, y);
   
   container.addChild(sprite);
   
@@ -25,7 +25,7 @@ async function createAndPlaceSprite(assetPath, x, y, container) {
   // Create a new application
   const app = new Application();
   // Initialize the application
-  await app.init({ background: "#1099bb", resizeTo: window });
+  await app.init({ background: "#000000", resizeTo: window });
   // Append the application canvas to the document body
   document.getElementById("pixi-container").appendChild(app.canvas);
 
@@ -35,6 +35,13 @@ async function createAndPlaceSprite(assetPath, x, y, container) {
   game.scale.set(gameScale); 
   TextureSource.defaultOptions.scaleMode = 'nearest'; 
 
+  const field = await createAndPlaceSprite(
+    "/assets/field.png",
+    0, 
+    0,
+    game,
+    0
+  )
   const bunny = await createAndPlaceSprite(
     "/assets/bunny.png",
     app.screen.width / 2, 
@@ -43,22 +50,19 @@ async function createAndPlaceSprite(assetPath, x, y, container) {
   )
   const platform = await createAndPlaceSprite(
     "/assets/platform.png",
-    app.screen.width / 4, 
-    app.screen.height / 4,
-    game
+    field.width / 2, 
+    field.height - 8,
+    field
   )
   const ball = await createAndPlaceSprite(
-    "/assets/platform.png",
-    app.screen.width / 4, 
-    app.screen.height / 4,
-    game
+    "/assets/ball.png",
+    platform.x, 
+    platform.y - platform.height,
+    field
   )
 
   // Listen for animate update
   app.ticker.add((time) => {
-    // Just for fun, let's rotate mr rabbit a little.
-    // * Delta is 1 if running at 100% performance *
-    // * Creates frame-independent transformation *
     bunny.rotation += 0.1 * time.deltaTime;
   });
 })();
