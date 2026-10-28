@@ -1,6 +1,8 @@
 import { Application, Assets, Sprite, TextureSource, Container } from "pixi.js";
 
 const gameScale = 2.5
+const wallsWidth = 8
+const platformSpeed = 3
 
 /**
  * 
@@ -21,6 +23,50 @@ async function createAndPlaceSprite(assetPath, x, y, container, anchor=0.5) {
   return sprite;
 }
 
+/**
+ * Test For Hit
+ * A basic AABB check between two different squares
+ * (Took from official examples)
+ */
+function testForAABB(object1, object2) { // gonna be used for collision of ball and platform
+  const bounds1 = object1.getBounds();
+  const bounds2 = object2.getBounds();
+
+  return (
+    bounds1.x < bounds2.x + bounds2.width &&
+    bounds1.x + bounds1.width > bounds2.x &&
+    bounds1.y < bounds2.y + bounds2.height &&
+    bounds1.y + bounds1.height > bounds2.y
+  );
+}
+
+/**
+ * 
+ * @param {*} platform 
+ * @param {*} field 
+ * @param {*} plusX value that is gonna to be added to platform x position
+ */
+function isPlatformGonnaHitWall(platform, field, plusX) {
+  if (platform.x + plusX - platform.width/2 < wallsWidth) {
+    return true;
+  }
+  else if (platform.x + plusX + platform.width/2 > field.width - wallsWidth) {
+    return true;
+  }
+
+  return false;
+}
+
+function runKeyListener(keys) {
+  window.addEventListener('keydown', (e) => {
+      keys[e.code] = true;
+  });
+
+  window.addEventListener('keyup', (e) => {
+      keys[e.code] = false;
+  });
+}
+
 (async () => {
   // Create a new application
   const app = new Application();
@@ -34,6 +80,9 @@ async function createAndPlaceSprite(assetPath, x, y, container, anchor=0.5) {
   app.stage.addChild(game);
   game.scale.set(gameScale); 
   TextureSource.defaultOptions.scaleMode = 'nearest'; 
+
+  const keys = {};
+  runKeyListener(keys);
 
   const field = await createAndPlaceSprite(
     "/assets/field.png",
@@ -63,6 +112,17 @@ async function createAndPlaceSprite(assetPath, x, y, container, anchor=0.5) {
 
   // Listen for animate update
   app.ticker.add((time) => {
-    bunny.rotation += 0.1 * time.deltaTime;
+    if (keys['KeyA'] || keys['ArrowLeft']) {
+        const plusX = -platformSpeed * time.deltaTime;
+        if (!isPlatformGonnaHitWall(platform, field, plusX)) {
+          platform.x += plusX;
+        }
+    }
+    if (keys['KeyD'] || keys['ArrowRight']) {
+        const plusX = platformSpeed * time.deltaTime;
+        if (!isPlatformGonnaHitWall(platform, field, plusX)) {
+          platform.x += plusX;
+        }
+    }
   });
 })();
