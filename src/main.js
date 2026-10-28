@@ -117,11 +117,17 @@ function runKeyListener(keys) {
         if (!isPlatformGonnaHitWall(platform, field, plusX)) {
           platform.x += plusX;
         }
+        else {
+          platform.x = wallsWidth + platform.width/2;
+        }
     }
     if (keys['KeyD'] || keys['ArrowRight']) {
         const plusX = platformSpeed * time.deltaTime;
         if (!isPlatformGonnaHitWall(platform, field, plusX)) {
           platform.x += plusX;
+        }
+        else {
+          platform.x = field.width - wallsWidth - platform.width/2;
         }
     }
   });
