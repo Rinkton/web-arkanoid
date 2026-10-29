@@ -1,4 +1,4 @@
-import { Assets, Sprite} from "pixi.js";
+import { Assets, Sprite, Texture, Rectangle, AnimatedSprite } from "pixi.js";
 
 export class Utils {
     /**
@@ -18,5 +18,37 @@ export class Utils {
     container.addChild(sprite);
     
     return sprite;
+  }
+
+  static async createAndPlaceAnimatedSprite(assetPath, cols, rows, x, y, container, animationSpeed, anchor=0.5) {
+    const baseTexture = await Assets.load(assetPath);
+
+    const frameWidth = baseTexture.width / cols;
+    const frameHeight = baseTexture.height / rows;
+
+    const frames = [];
+
+    // Cut the texture into frame
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const frameTexture = new Texture({
+                source: baseTexture.source,
+                frame: new Rectangle(c * frameWidth, r * frameHeight, frameWidth, frameHeight)
+            });
+            
+            frames.push(frameTexture);
+        }
+    }
+
+    const anim = new AnimatedSprite(frames);
+
+    anim.x = x;
+    anim.y = y;
+    anim.anchor.set(anchor);
+    anim.animationSpeed = animationSpeed;
+
+    container.addChild(anim);
+
+    return anim;
   }
 }

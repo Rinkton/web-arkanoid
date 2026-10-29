@@ -165,7 +165,7 @@ class Game {
     this.ball.y += plusY * fraction;
   }
 
-  handleBall(time) {
+  async handleBall(time) {
     if (!this.ballReleased) {
       this.ball.x = this.platform.x;
     }
@@ -205,8 +205,17 @@ class Game {
       }
 
       // if the top of the ball is lower than the bottom of the platform, then the player lost the game
-      if (this.objTop(this.ball) > this.objBottom(this.platform)) {
-        this.app.ticker.stop();
+      if (this.objTop(this.ball) > this.objBottom(this.platform) && !this.gameOver) {
+        this.gameOver = true;
+        this.ballSpeed = 0;
+        this.platform.visible = false;
+        const platformDestroyed = await Utils.createAndPlaceAnimatedSprite(
+          "/assets/platformDestroyed.png", 3, 1, this.platform.x, this.platform.y, this.game, 0.25)
+        platformDestroyed.loop = false;
+        platformDestroyed.onComplete = () => {
+            platformDestroyed.destroy();
+        };
+        platformDestroyed.play()
       }
     }
   }
@@ -262,9 +271,9 @@ class Game {
     this.app.ticker.add(this.tick);
   }
 
-  update(time) {
+  async update(time) {
     this.control(time)
-    this.handleBall(time)
+    await this.handleBall(time)
   }
 
   destroy() {
