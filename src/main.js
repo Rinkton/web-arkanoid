@@ -6,6 +6,9 @@ class Game {
     this.gameScale = 2.5;
     this.wallsWidth = 8;
     this.platformSpeed = 3;
+    this.ballReleased = false;
+    this.ballSpeed = 3;
+    this.ballYDir = -1;
 
     this.keys = {};
   }
@@ -48,8 +51,6 @@ class Game {
 
   /**
    * 
-   * @param {*} platform 
-   * @param {*} field 
    * @param {*} plusX value that is gonna to be added to platform x position
    */
   isPlatformGonnaHitWall(plusX) {
@@ -61,6 +62,39 @@ class Game {
     }
 
     return false;
+  }
+
+  /**
+   * 
+   * @param {*} plusX value that is gonna to be added to ball x position
+   */
+  getBallWallFraction(plusX) {
+    const exp1 = this.ball.x + plusX - this.ball.width/2;
+    const exp2 = this.ball.x + plusX + this.ball.width/2;
+
+    if (exp1 < this.wallsWidth) {
+      return (this.wallsWidth - exp1) / Math.abs(plusX);
+    }
+    else if (exp2 > this.field.width - this.wallsWidth) {
+      return (exp2 - (this.field.width - this.wallsWidth)) / Math.abs(plusX);
+    }
+
+    return -1;
+  }
+
+  /**
+   * 
+   * @param {*} plusY value that is gonna to be added to ball y position
+   * @returns 
+   */
+  getBallCeilingFraction(plusY) {
+    const exp = this.ball.y + plusY - this.ball.height/2;
+
+    if (exp < this.wallsWidth) {
+      return Math.abs(exp - this.wallsWidth) / Math.abs(plusY);
+    }
+
+    return -1;
   }
 
   runKeyListener() {
@@ -90,6 +124,46 @@ class Game {
       }
       else {
         this.platform.x = this.field.width - this.wallsWidth - this.platform.width/2;
+      }
+    }
+
+    if (!this.ballReleased && (this.keys['KeyW'] || this.keys['ArrowUp'])) {
+        this.ballXDir = Math.random() < 0.5 ? 1 : -1; // Chooses randomly 1 or -1
+        this.ballReleased = true;
+      }
+  }
+
+  moveBall(fraction, time) {
+    const plusX = this.ballSpeed * this.ballXDir * time.deltaTime;
+    const plusY = this.ballSpeed * this.ballYDir * time.deltaTime;
+    this.ball.x += plusX * fraction;
+    this.ball.y += plusY * fraction;
+  }
+
+  handleBall(time) {
+    if (!this.ballReleased) {
+      this.ball.x = this.platform.x;
+    }
+    else {
+      const plusX = this.ballSpeed * this.ballXDir * time.deltaTime;
+      const plusY = this.ballSpeed * this.ballYDir * time.deltaTime;
+      const wallFraction = this.getBallWallFraction(plusX);
+      const ceilingFraction = this.getBallCeilingFraction(plusY);
+
+      if (wallFraction != -1 || ceilingFraction != -1) {
+        if (wallFraction != -1) {
+          this.moveBall(1 - wallFraction, time);
+          this.ballXDir = -this.ballXDir
+          this.moveBall(wallFraction, time);
+        }
+        else if (ceilingFraction != -1) {
+          this.moveBall(1 - ceilingFraction, time);
+          this.ballYDir = -this.ballYDir
+          this.moveBall(ceilingFraction, time);
+        }
+      }
+      else {
+        this.moveBall(1, time)
       }
     }
   }
@@ -147,6 +221,7 @@ class Game {
 
   update(time) {
     this.control(time)
+    this.handleBall(time)
   }
 
   destroy() {
