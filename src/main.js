@@ -1,7 +1,7 @@
 import { Application, Assets, Sprite, TextureSource, Container } from "pixi.js";
 
 class Game {
-  constructor({ container}) {
+  constructor({container}) {
     this.container = container;
     this.gameScale = 2.5;
     this.wallsWidth = 8;
@@ -73,23 +73,28 @@ class Game {
     });
   }
 
-  async init () {
-    // Create a new application
-    this.app = new Application();
-    // Initialize the application
-    await this.app.init({ background: "#000000", resizeTo: window });
-    // Append the application canvas to the document body
-    this.container.appendChild(this.app.canvas);
+  control(time) {
+    if (this.keys['KeyA'] || this.keys['ArrowLeft']) {
+      const plusX = -this.platformSpeed * time.deltaTime;
+      if (!this.isPlatformGonnaHitWall(plusX)) {
+        this.platform.x += plusX;
+      }
+      else {
+        this.platform.x = this.wallsWidth + this.platform.width/2;
+      }
+    }
+    if (this.keys['KeyD'] || this.keys['ArrowRight']) {
+      const plusX = this.platformSpeed * time.deltaTime;
+      if (!this.isPlatformGonnaHitWall(plusX)) {
+        this.platform.x += plusX;
+      }
+      else {
+        this.platform.x = this.field.width - this.wallsWidth - this.platform.width/2;
+      }
+    }
+  }
 
-    // TO make it look ok for pixelart images
-    this.game = new Container();
-    this.app.stage.addChild(this.game);
-    this.game.scale.set(this.gameScale); 
-    TextureSource.defaultOptions.scaleMode = 'nearest'; 
-
-    this.keys = {};
-    this.runKeyListener();
-
+  async initObjects() {
     this.field = await this.createAndPlaceSprite(
       "/assets/field.png",
       0, 
@@ -115,30 +120,33 @@ class Game {
       this.platform.y - this.platform.height,
       this.field
     )
+  }
+
+  async init () {
+    // Create a new application
+    this.app = new Application();
+    // Initialize the application
+    await this.app.init({ background: "#000000", resizeTo: window });
+    // Append the application canvas to the document body
+    this.container.appendChild(this.app.canvas);
+
+    // TO make it look ok for pixelart images
+    this.game = new Container();
+    this.app.stage.addChild(this.game);
+    this.game.scale.set(this.gameScale); 
+    TextureSource.defaultOptions.scaleMode = 'nearest'; 
+
+    this.keys = {};
+    this.runKeyListener();
+
+    await this.initObjects();
     
     this.tick = (ticker) => this.update(ticker);
     this.app.ticker.add(this.tick);
   }
 
   update(time) {
-    if (this.keys['KeyA'] || this.keys['ArrowLeft']) {
-      const plusX = -this.platformSpeed * time.deltaTime;
-      if (!this.isPlatformGonnaHitWall(plusX)) {
-        this.platform.x += plusX;
-      }
-      else {
-        this.platform.x = this.wallsWidth + this.platform.width/2;
-      }
-    }
-    if (this.keys['KeyD'] || this.keys['ArrowRight']) {
-      const plusX = this.platformSpeed * time.deltaTime;
-      if (!this.isPlatformGonnaHitWall(plusX)) {
-        this.platform.x += plusX;
-      }
-      else {
-        this.platform.x = this.field.width - this.wallsWidth - this.platform.width/2;
-      }
-    }
+    this.control(time)
   }
 
   destroy() {
