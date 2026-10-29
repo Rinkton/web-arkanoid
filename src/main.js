@@ -1,4 +1,5 @@
 import { Application, Assets, Sprite, TextureSource, Container } from "pixi.js";
+import { Utils } from "./utils.js"
 
 class Game {
   constructor({container}) {
@@ -11,25 +12,6 @@ class Game {
     this.ballYDir = -1;
 
     this.keys = {};
-  }
-
-  /**
-   * 
-   * @param {*} texture Asset path where the png is placed
-   * @param {*} x its x pos
-   * @param {*} y its y pos
-   * @param {*} container some container(e.g. app.stage or game)
-   * @returns sprite
-   */
-  async createAndPlaceSprite(assetPath, x, y, container, anchor=0.5) {
-    const texture = await Assets.load(assetPath);
-    const sprite = new Sprite(texture);
-    sprite.anchor.set(anchor); // center it
-    sprite.position.set(x, y);
-    
-    container.addChild(sprite);
-    
-    return sprite;
   }
 
   /**
@@ -230,26 +212,26 @@ class Game {
   }
 
   async initObjects() {
-    this.field = await this.createAndPlaceSprite(
+    this.field = await Utils.createAndPlaceSprite(
       "/assets/field.png",
       0, 
       0,
       this.game,
       0
     )
-    this.bunny = await this.createAndPlaceSprite(
+    this.bunny = await Utils.createAndPlaceSprite(
       "/assets/bunny.png",
       this.app.screen.width / 2, 
       this.app.screen.height / 2,
       this.game
     )
-    this.platform = await this.createAndPlaceSprite(
+    this.platform = await Utils.createAndPlaceSprite(
       "/assets/platform.png",
       this.field.width / 2, 
       this.field.height - 8,
       this.field
     )
-    this.ball = await this.createAndPlaceSprite(
+    this.ball = await Utils.createAndPlaceSprite(
       "/assets/ball.png",
       this.platform.x, 
       this.platform.y - this.platform.height,
