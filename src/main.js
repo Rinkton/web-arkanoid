@@ -7,7 +7,7 @@ class Game {
     this.wallsWidth = 8;
     this.platformSpeed = 3;
     this.ballReleased = false;
-    this.ballSpeed = 3;
+    this.ballSpeed = 2;
     this.ballYDir = -1;
 
     this.keys = {};
@@ -54,10 +54,10 @@ class Game {
    * @param {*} plusX value that is gonna to be added to platform x position
    */
   isPlatformGonnaHitWall(plusX) {
-    if (this.platform.x + plusX - this.platform.width/2 < this.wallsWidth) {
+    if (this.objLeft(this.platform) + plusX < this.wallsWidth) {
       return true;
     }
-    else if (this.platform.x + plusX + this.platform.width/2 > this.field.width - this.wallsWidth) {
+    else if (this.objRight(this.platform) + plusX  > this.field.width - this.wallsWidth) {
       return true;
     }
 
@@ -67,10 +67,12 @@ class Game {
   /**
    * 
    * @param {*} plusX value that is gonna to be added to ball x position
+   * @returns number from 0 to 1, which is fraction of distance the ball can move after it hit the wall
+   * or -1 i there's nothing on the way
    */
   getBallWallFraction(plusX) {
-    const exp1 = this.ball.x + plusX - this.ball.width/2;
-    const exp2 = this.ball.x + plusX + this.ball.width/2;
+    const exp1 = this.objLeft(this.ball) - plusX;
+    const exp2 = this.objLeft(this.ball) + plusX;
 
     if (exp1 < this.wallsWidth) {
       return (this.wallsWidth - exp1) / Math.abs(plusX);
@@ -85,13 +87,54 @@ class Game {
   /**
    * 
    * @param {*} plusY value that is gonna to be added to ball y position
-   * @returns 
+   * @returns number from 0 to 1, which is fraction of distance the ball can move after it hit the ceiling
+   * or -1 i there's nothing on the way
    */
   getBallCeilingFraction(plusY) {
-    const exp = this.ball.y + plusY - this.ball.height/2;
+    const exp = this.objTop(this.ball) + plusY;
 
     if (exp < this.wallsWidth) {
       return Math.abs(exp - this.wallsWidth) / Math.abs(plusY);
+    }
+
+    return -1;
+  }
+
+  objTop(what) {
+    return what.y - what.height/2
+  }
+
+  objRight(what) {
+    return what.x + what.width/2
+  }
+
+  objBottom(what) {
+    return what.y + what.height/2
+  }
+
+  objLeft(what) {
+    return what.x - what.width/2
+  }
+
+    /**
+   * 
+   * @param {*} plusX value that is gonna to be added to ball x position
+   * @param {*} plusY value that is gonna to be added to ball y position
+   * @returns number from 0 to 1, which is fraction of distance the ball can move after it hit the platform
+   * or -1 i there's nothing on the way
+   */
+  getBallPlatformFraction(plusX, plusY) {
+    const yleft1 = this.objBottom(this.ball) + plusY;
+    const yright1 = this.objTop(this.platform);
+    const yleft2 = this.objTop(this.ball) + plusY;
+    const yright2 = this.objBottom(this.platform);
+    const ycond = yleft1 >= yright1 && yleft2 <= yright2;
+    const xleft = Math.abs(this.ball.x - this.platform.x + plusX); // x distance from ball to platform
+    const xright = this.ball.width/2 + this.platform.width/2; // radius of collision
+    const xcond = xleft <= xright
+
+    if (ycond && xcond) {
+      return 1 // without fraction mechanism
     }
 
     return -1;
@@ -149,8 +192,9 @@ class Game {
       const plusY = this.ballSpeed * this.ballYDir * time.deltaTime;
       const wallFraction = this.getBallWallFraction(plusX);
       const ceilingFraction = this.getBallCeilingFraction(plusY);
+      const platformFraction = this.getBallPlatformFraction(plusX, plusY)
 
-      if (wallFraction != -1 || ceilingFraction != -1) {
+      if (wallFraction != -1 || ceilingFraction != -1 || platformFraction != -1) {
         if (wallFraction != -1) {
           this.moveBall(1 - wallFraction, time);
           this.ballXDir = -this.ballXDir
@@ -161,9 +205,26 @@ class Game {
           this.ballYDir = -this.ballYDir
           this.moveBall(ceilingFraction, time);
         }
+        else if (platformFraction != -1) {
+          this.moveBall(1 - platformFraction, time);
+          if (this.objBottom(this.ball) > this.objTop(this.platform)) {
+            // when hitting the edges of the platform
+            this.ballXDir = -this.ballXDir
+            this.ballYDir = -this.ballYDir
+          }
+          else {
+            this.ballYDir = -this.ballYDir
+          }
+          this.moveBall(platformFraction, time);
+        }
       }
       else {
         this.moveBall(1, time)
+      }
+
+      // if the top of the ball is lower than the bottom of the platform, then the player lost the game
+      if (this.objTop(this.ball) > this.objBottom(this.platform)) {
+        this.app.ticker.stop();
       }
     }
   }
