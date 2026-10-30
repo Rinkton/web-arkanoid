@@ -51,4 +51,20 @@ export class Utils {
 
     return anim;
   }
+
+  static objTop(what) {
+    return what.y - what.height/2
+  }
+
+  static objRight(what) {
+    return what.x + what.width/2
+  }
+
+  static objBottom(what) {
+    return what.y + what.height/2
+  }
+
+  static objLeft(what) {
+    return what.x - what.width/2
+  }
 }

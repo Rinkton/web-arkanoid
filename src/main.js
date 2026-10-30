@@ -36,10 +36,10 @@ class Game {
    * @param {*} plusX value that is gonna to be added to platform x position
    */
   isPlatformGonnaHitWall(plusX) {
-    if (this.objLeft(this.platform) + plusX < this.wallsWidth) {
+    if (Utils.objLeft(this.platform) + plusX < this.wallsWidth) {
       return true;
     }
-    else if (this.objRight(this.platform) + plusX  > this.field.width - this.wallsWidth) {
+    else if (Utils.objRight(this.platform) + plusX  > this.field.width - this.wallsWidth) {
       return true;
     }
 
@@ -53,8 +53,8 @@ class Game {
    * or -1 i there's nothing on the way
    */
   getBallWallFraction(plusX) {
-    const exp1 = this.objLeft(this.ball) - plusX;
-    const exp2 = this.objLeft(this.ball) + plusX;
+    const exp1 = Utils.objLeft(this.ball) - plusX;
+    const exp2 = Utils.objLeft(this.ball) + plusX;
 
     if (exp1 < this.wallsWidth) {
       return (this.wallsWidth - exp1) / Math.abs(plusX);
@@ -73,29 +73,13 @@ class Game {
    * or -1 i there's nothing on the way
    */
   getBallCeilingFraction(plusY) {
-    const exp = this.objTop(this.ball) + plusY;
+    const exp = Utils.objTop(this.ball) + plusY;
 
     if (exp < this.wallsWidth) {
       return Math.abs(exp - this.wallsWidth) / Math.abs(plusY);
     }
 
     return -1;
-  }
-
-  objTop(what) {
-    return what.y - what.height/2
-  }
-
-  objRight(what) {
-    return what.x + what.width/2
-  }
-
-  objBottom(what) {
-    return what.y + what.height/2
-  }
-
-  objLeft(what) {
-    return what.x - what.width/2
   }
 
     /**
@@ -106,10 +90,10 @@ class Game {
    * or -1 i there's nothing on the way
    */
   getBallPlatformFraction(plusX, plusY) {
-    const yleft1 = this.objBottom(this.ball) + plusY;
-    const yright1 = this.objTop(this.platform);
-    const yleft2 = this.objTop(this.ball) + plusY;
-    const yright2 = this.objBottom(this.platform);
+    const yleft1 = Utils.objBottom(this.ball) + plusY;
+    const yright1 = Utils.objTop(this.platform);
+    const yleft2 = Utils.objTop(this.ball) + plusY;
+    const yright2 = Utils.objBottom(this.platform);
     const ycond = yleft1 >= yright1 && yleft2 <= yright2;
     const xleft = Math.abs(this.ball.x - this.platform.x + plusX); // x distance from ball to platform
     const xright = this.ball.width/2 + this.platform.width/2; // radius of collision
@@ -189,7 +173,7 @@ class Game {
         }
         else if (platformFraction != -1) {
           this.moveBall(1 - platformFraction, time);
-          if (this.objBottom(this.ball) > this.objTop(this.platform)) {
+          if (Utils.objBottom(this.ball) > Utils.objTop(this.platform)) {
             // when hitting the edges of the platform
             this.ballXDir = -this.ballXDir
             this.ballYDir = -this.ballYDir
@@ -205,7 +189,7 @@ class Game {
       }
 
       // if the top of the ball is lower than the bottom of the platform, then the player lost the game
-      if (this.objTop(this.ball) > this.objBottom(this.platform) && !this.gameOver) {
+      if (Utils.objTop(this.ball) > Utils.objBottom(this.platform) && !this.gameOver) {
         this.gameOver = true;
         this.ballSpeed = 0;
         this.platform.visible = false;
