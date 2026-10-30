@@ -21,15 +21,15 @@ export class Game {
    * A basic AABB check between two different squares
    * (Took from official examples)
    */
-  testForAABB(object1, object2) { // gonna be used for collision of ball and platform
-    const bounds1 = object1.getBounds();
-    const bounds2 = object2.getBounds();
+  testForAABB(o1, o2, o1plusX, o1plusY) {
+    const bounds1 = o1.getBounds();
+    const bounds2 = o2.getBounds();
 
     return (
-      bounds1.x < bounds2.x + bounds2.width &&
-      bounds1.x + bounds1.width > bounds2.x &&
-      bounds1.y < bounds2.y + bounds2.height &&
-      bounds1.y + bounds1.height > bounds2.y
+      bounds1.x + o1plusX < bounds2.x + bounds2.width &&
+      bounds1.x + o1plusX + bounds1.width > bounds2.x &&
+      bounds1.y + o1plusY < bounds2.y + bounds2.height &&
+      bounds1.y + o1plusY + bounds1.height > bounds2.y
     );
   }
 
@@ -108,6 +108,15 @@ export class Game {
     return -1;
   }
 
+  getBallBlockFraction(plusX, plusY) {
+    for (const block of this.blocks) {
+      if (block != null && this.testForAABB(this.ball, block, plusX, plusY)) {
+        return { blockFraction: 1, block };
+      }
+    }
+    return { blockFraction: -1, block: null };
+  }
+
   runKeyListener() {
     window.addEventListener('keydown', (e) => {
       this.keys[e.code] = true;
@@ -161,8 +170,9 @@ export class Game {
       const wallFraction = this.getBallWallFraction(plusX);
       const ceilingFraction = this.getBallCeilingFraction(plusY);
       const platformFraction = this.getBallPlatformFraction(plusX, plusY)
+      const { blockFraction, block } = this.getBallBlockFraction(plusX, plusY);
 
-      if (wallFraction != -1 || ceilingFraction != -1 || platformFraction != -1) {
+      if (wallFraction != -1 || ceilingFraction != -1 || platformFraction != -1 || blockFraction != -1) {
         if (wallFraction != -1) {
           this.moveBall(1 - wallFraction, time);
           this.ballXDir = -this.ballXDir
@@ -184,6 +194,25 @@ export class Game {
             this.ballYDir = -this.ballYDir
           }
           this.moveBall(platformFraction, time);
+        }
+        else if (blockFraction != -1) {
+          const isHorizontalCollision = this.ball.y < Utils.objBottom(block) && 
+            this.ball.y > Utils.objTop(block);
+
+          this.moveBall(1 - blockFraction, time);
+          if (isHorizontalCollision) {
+            this.ballXDir = -this.ballXDir
+          }
+          else {
+            this.ballYDir = -this.ballYDir
+          }
+
+          if (block.customData['type'] == 'simple') {
+            this.blocks[this.blocks.indexOf(block)] = null;
+            block.destroy();
+          }
+
+          this.moveBall(blockFraction, time);
         }
       }
       else {

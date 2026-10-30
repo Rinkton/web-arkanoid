@@ -13,7 +13,10 @@ export class Blocks {
         await blocksLevel.fillRow('pink');
         await blocksLevel.fillRow('green');
 
-        this.placeBlocks(blocksLevel.build(), container)
+        const blocks = blocksLevel.build();
+        this.placeBlocks(blocks, container);
+
+        return blocks;
     }
 
     static placeBlocks(blocks, container) {
