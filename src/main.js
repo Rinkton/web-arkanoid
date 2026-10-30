@@ -149,9 +149,13 @@ export class Game {
     }
 
     if (!this.ballReleased && (this.keys['KeyW'] || this.keys['ArrowUp'])) {
-        this.ballXDir = Math.random() < 0.5 ? 1 : -1; // Chooses randomly 1 or -1
-        this.ballReleased = true;
-      }
+      this.ballXDir = Math.random() < 0.5 ? 1 : -1; // Chooses randomly 1 or -1
+      this.ballReleased = true;
+    }
+
+    if (this.keys['KeyR']) {
+      this.destroy()
+    }
   }
 
   moveBall(fraction, time) {
@@ -333,10 +337,19 @@ export class Game {
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup',   this.onKeyUp);
     this.app?.ticker.remove(this.tick);
-    this.app?.destroy(true, { children: true });
+    this.app?.destroy(true, { removeView: true, releaseGlobalResources: true }, 
+      { children: true, texture: true, textureSource: true });
     this.app = null;
   }
 }
 
-const game = new Game({ container: document.getElementById("pixi-container") });
-await game.init();
+async function initializeArkanoid() {
+  const game = new Game({ container: document.getElementById("pixi-container") });
+  await game.init();
+
+  game.app.stage.once('destroyed', async () => {
+    initializeArkanoid();
+  });
+}
+
+await initializeArkanoid();
