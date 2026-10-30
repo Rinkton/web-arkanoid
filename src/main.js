@@ -296,10 +296,21 @@ export class Game {
     this.winText.style.fontWeight = 'bold';
     this.loseText.visible = false;
     this.winText.visible = false;
+    const rightPanelTextIndent = 12;
     this.scoreText = Utils.createAndPlaceText(
       "Score: 0", 
-      this.field.width + 12, 
-      12, 
+      this.field.width + rightPanelTextIndent, 
+      rightPanelTextIndent, 
+      this.field, 0, "#ffffff", 24
+    )
+    this.instructionText = Utils.createAndPlaceText(
+      `- Instruction -
+W/↑ - release a ball
+A/← - move left
+D/→ - move right
+R - restart the game`, 
+      this.field.width + rightPanelTextIndent, 
+      rightPanelTextIndent + this.scoreText.height + rightPanelTextIndent, 
       this.field, 0, "#ffffff", 24
     )
   }
