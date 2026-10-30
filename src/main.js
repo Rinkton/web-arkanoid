@@ -4,10 +4,10 @@ import { Blocks } from "./blocks.js";
 
 export class Game {
   static wallsWidth = 8;
+  static gameScale = 2.5;
 
   constructor({container}) {
     this.container = container;
-    this.gameScale = 2.5;
     this.platformSpeed = 3;
     this.ballReleased = false;
     this.ballSpeed = 2;
@@ -212,6 +212,10 @@ export class Game {
             block.destroy();
           }
 
+          const allBlocksDestroyed = this.blocks.filter(block => block === null).length == this.blocks.length;
+          if (allBlocksDestroyed) {
+            this.winText.visible = true;
+          }
           this.moveBall(blockFraction, time);
         }
       }
@@ -231,6 +235,9 @@ export class Game {
             platformDestroyed.destroy();
         };
         platformDestroyed.play()
+        if (!this.winText.visible) {
+          this.loseText.visible = true
+        }
       }
     }
   }
@@ -262,6 +269,22 @@ export class Game {
       this.field
     )
     this.blocks = await Blocks.spawnBlocks(this.field);
+    this.loseText = Utils.createAndPlaceText(
+      "YOU LOST!", 
+      this.field.width/2, 
+      this.field.height/2, 
+      this.field, 0.5, "#B53121"
+    )
+    this.loseText.style.fontWeight = 'bold';
+    this.winText = Utils.createAndPlaceText(
+      "YOU WON!", 
+      this.field.width/2, 
+      this.field.height/2, 
+      this.field, 0.5, "#8CD600"
+    )
+    this.winText.style.fontWeight = 'bold';
+    this.loseText.visible = false;
+    this.winText.visible = false;
   }
 
   async init () {
@@ -275,8 +298,9 @@ export class Game {
     // TO make it look ok for pixelart images
     this.game = new Container();
     this.app.stage.addChild(this.game);
-    this.game.scale.set(this.gameScale); 
-    TextureSource.defaultOptions.scaleMode = 'nearest'; 
+    this.game.scale.set(Game.gameScale); 
+    TextureSource.defaultOptions.scaleMode = 'nearest';
+    
 
     this.keys = {};
     this.runKeyListener();

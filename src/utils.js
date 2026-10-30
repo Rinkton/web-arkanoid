@@ -1,4 +1,5 @@
-import { Assets, Sprite, Texture, Rectangle, AnimatedSprite } from "pixi.js";
+import { Assets, Sprite, Texture, Rectangle, AnimatedSprite, Text } from "pixi.js";
+import { Game } from "./main.js";
 
 export class Utils {
     /**
@@ -63,6 +64,27 @@ export class Utils {
     }
 
     return frames;
+  }
+
+  static createAndPlaceText(content, x, y, container, anchor=0.5, fontFill='#ffffff', fontSize=48) {
+    const text = new Text({
+        text: content,
+        style: {
+            fontFamily: '"MS Gothic", "Fixedsys", monospace',
+            fontSize: fontSize,
+            fill: fontFill,
+            align: 'center',
+        },
+        anchor: anchor
+    });
+
+    text.x = x;
+    text.y = y;
+    text.scale.set(1 / Game.gameScale); 
+
+    container.addChild(text);
+
+    return text
   }
 
   static objTop(what) {
