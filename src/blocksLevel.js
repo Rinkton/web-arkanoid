@@ -47,7 +47,8 @@ export class BlocksLevel {
         const textures = await Utils.getFrames("/assets/blocks.png", 1, 5);
         const texture = textures[BlocksLevel.simpleTypes.indexOf(type)];
         const sprite = await Utils.createAndPlaceSpriteByTexture(texture, x, y);
-        sprite.customData = { "type": "simple" }
+        const scorePoints = [50, 40, 30, 20, 10]
+        sprite.customData = { "type": "simple", "score": scorePoints[BlocksLevel.simpleTypes.indexOf(type)] }
 
         return sprite
     }

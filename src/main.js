@@ -12,6 +12,7 @@ export class Game {
     this.ballReleased = false;
     this.ballSpeed = 2;
     this.ballYDir = -1;
+    this.score = 0;
 
     this.keys = {};
   }
@@ -160,6 +161,11 @@ export class Game {
     this.ball.y += plusY * fraction;
   }
 
+  addScore(num) {
+    this.score += num;
+    this.scoreText.text = "Score: " + this.score
+  }
+
   async handleBall(time) {
     if (!this.ballReleased) {
       this.ball.x = this.platform.x;
@@ -210,6 +216,7 @@ export class Game {
           if (block.customData['type'] == 'simple') {
             this.blocks[this.blocks.indexOf(block)] = null;
             block.destroy();
+            this.addScore(block.customData['score']);
           }
 
           const allBlocksDestroyed = this.blocks.filter(block => block === null).length == this.blocks.length;
@@ -285,6 +292,12 @@ export class Game {
     this.winText.style.fontWeight = 'bold';
     this.loseText.visible = false;
     this.winText.visible = false;
+    this.scoreText = Utils.createAndPlaceText(
+      "Score: 0", 
+      this.field.width + 12, 
+      12, 
+      this.field, 0, "#ffffff", 24
+    )
   }
 
   async init () {
