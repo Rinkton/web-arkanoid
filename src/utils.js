@@ -11,34 +11,24 @@ export class Utils {
    */
   static async createAndPlaceSprite(assetPath, x, y, container, anchor=0.5) {
     const texture = await Assets.load(assetPath);
+    
+    return await this.createAndPlaceSpriteByTexture(texture, x, y, container, anchor);
+  }
+
+  static async createAndPlaceSpriteByTexture(texture, x, y, container=null, anchor=0.5) {
     const sprite = new Sprite(texture);
     sprite.anchor.set(anchor); // center it
     sprite.position.set(x, y);
     
-    container.addChild(sprite);
-    
+    if (container != null) {
+      container.addChild(sprite);
+    }
+
     return sprite;
   }
 
   static async createAndPlaceAnimatedSprite(assetPath, cols, rows, x, y, container, animationSpeed, anchor=0.5) {
-    const baseTexture = await Assets.load(assetPath);
-
-    const frameWidth = baseTexture.width / cols;
-    const frameHeight = baseTexture.height / rows;
-
-    const frames = [];
-
-    // Cut the texture into frame
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            const frameTexture = new Texture({
-                source: baseTexture.source,
-                frame: new Rectangle(c * frameWidth, r * frameHeight, frameWidth, frameHeight)
-            });
-            
-            frames.push(frameTexture);
-        }
-    }
+    const frames = await this.getFrames(assetPath, cols, rows)
 
     const anim = new AnimatedSprite(frames);
 
@@ -50,6 +40,29 @@ export class Utils {
     container.addChild(anim);
 
     return anim;
+  }
+
+  static async getFrames(assetPath, cols, rows) {
+    const baseTexture = await Assets.load(assetPath);
+
+    const frameWidth = baseTexture.width / cols;
+    const frameHeight = baseTexture.height / rows;
+
+    const frames = [];
+
+    // Cut the texture into frame
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const frameTexture = new Texture({
+          source: baseTexture.source,
+          frame: new Rectangle(c * frameWidth, r * frameHeight, frameWidth, frameHeight)
+        });
+        
+        frames.push(frameTexture);
+      }
+    }
+
+    return frames;
   }
 
   static objTop(what) {

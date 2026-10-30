@@ -1,11 +1,13 @@
 import { Application, Assets, Sprite, TextureSource, Container } from "pixi.js";
-import { Utils } from "./utils.js"
+import { Utils } from "./utils.js";
+import { Blocks } from "./blocks.js";
 
-class Game {
+export class Game {
+  static wallsWidth = 8;
+
   constructor({container}) {
     this.container = container;
     this.gameScale = 2.5;
-    this.wallsWidth = 8;
     this.platformSpeed = 3;
     this.ballReleased = false;
     this.ballSpeed = 2;
@@ -36,10 +38,10 @@ class Game {
    * @param {*} plusX value that is gonna to be added to platform x position
    */
   isPlatformGonnaHitWall(plusX) {
-    if (Utils.objLeft(this.platform) + plusX < this.wallsWidth) {
+    if (Utils.objLeft(this.platform) + plusX < Game.wallsWidth) {
       return true;
     }
-    else if (Utils.objRight(this.platform) + plusX  > this.field.width - this.wallsWidth) {
+    else if (Utils.objRight(this.platform) + plusX  > this.field.width - Game.wallsWidth) {
       return true;
     }
 
@@ -56,11 +58,11 @@ class Game {
     const exp1 = Utils.objLeft(this.ball) - plusX;
     const exp2 = Utils.objLeft(this.ball) + plusX;
 
-    if (exp1 < this.wallsWidth) {
-      return (this.wallsWidth - exp1) / Math.abs(plusX);
+    if (exp1 < Game.wallsWidth) {
+      return (Game.wallsWidth - exp1) / Math.abs(plusX);
     }
-    else if (exp2 > this.field.width - this.wallsWidth) {
-      return (exp2 - (this.field.width - this.wallsWidth)) / Math.abs(plusX);
+    else if (exp2 > this.field.width - Game.wallsWidth) {
+      return (exp2 - (this.field.width - Game.wallsWidth)) / Math.abs(plusX);
     }
 
     return -1;
@@ -75,8 +77,8 @@ class Game {
   getBallCeilingFraction(plusY) {
     const exp = Utils.objTop(this.ball) + plusY;
 
-    if (exp < this.wallsWidth) {
-      return Math.abs(exp - this.wallsWidth) / Math.abs(plusY);
+    if (exp < Game.wallsWidth) {
+      return Math.abs(exp - Game.wallsWidth) / Math.abs(plusY);
     }
 
     return -1;
@@ -123,7 +125,7 @@ class Game {
         this.platform.x += plusX;
       }
       else {
-        this.platform.x = this.wallsWidth + this.platform.width/2;
+        this.platform.x = Game.wallsWidth + this.platform.width/2;
       }
     }
     if (this.keys['KeyD'] || this.keys['ArrowRight']) {
@@ -132,7 +134,7 @@ class Game {
         this.platform.x += plusX;
       }
       else {
-        this.platform.x = this.field.width - this.wallsWidth - this.platform.width/2;
+        this.platform.x = this.field.width - Game.wallsWidth - this.platform.width/2;
       }
     }
 
@@ -230,6 +232,7 @@ class Game {
       this.platform.y - this.platform.height,
       this.field
     )
+    this.blocks = await Blocks.spawnBlocks(this.field);
   }
 
   async init () {
